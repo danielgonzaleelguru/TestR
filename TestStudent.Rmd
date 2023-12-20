@@ -2,11 +2,29 @@
 title: "TestStudent"
 author: "Daniel Gonzalez"
 date: "2023-12-20"
-output: pdf_document
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
+
+# 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(DBI)
+library(dplyr)
+library(dbplyr)
+library(odbc)
+dbListTables(con)
+
+
+```
+
+```{r}
+data <- dbReadTable(con, "afirmaciones")
+head(data,10)
 ```
 
 ## R Markdown
@@ -15,16 +33,42 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+```{r, echo=FALSE}
+library(openintro)
+library(tidyverse)
+data(births)
+head(births, 4)
 ```
 
-## Including Plots
+## Filtering Data
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r,echo=FALSE}
+smoker    <- births %>% filter(smoke == "smoker") %>% pull(weight)
+nonsmoker <- births %>% filter(smoke == "nonsmoker") %>% pull(weight)
+
+mean(nonsmoker) - mean(smoker)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# Plotting Chart
+
+```{r,echo=FALSE}
+ggplot(births,aes(x = weight)) + 
+  geom_histogram(aes(y = ..density.., colour = smoke)) +
+  facet_grid(.~ smoke) +
+  theme_bw() + theme(legend.position = "none")
+```
+
+# **Testing normality:**
+
+```{r,echo=FALSE}
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(1, 2))
+qqnorm(nonsmoker, xlab = "", ylab = "",
+       main = "nonsmoker", col = "firebrick")
+qqline(nonsmoker)
+qqnorm(smoker, xlab = "", ylab = "",
+       main = "smoker", col = "blue")
+qqline(smoker)
+```
